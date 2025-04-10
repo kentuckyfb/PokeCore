@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
+
 export const metadata: Metadata = {
   title: 'Pokémon Card Explorer',
   description: 'Explore Pokémon information in a beautiful card format',

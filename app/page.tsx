@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import PokemonCard from '../components/PokemonCard';
+import PokemonCard from '../components/EnhancedPokemonCard';
 import BentoBoxes from '../components/BentoBoxes';
 import { getPokemon, getPokemonSpecies, getRandomPokemon, getTypeColor } from '../utils/pokemonApi';
 import { Pokemon, PokemonSpecies } from '../types/pokemon';
@@ -238,7 +238,9 @@ export default function Home() {
                 custom={!!activeSection && activeSection !== 'info'}
                 onClick={() => handleSectionClick('info')}
               >
-                <BentoBoxes pokemon={pokemon} species={species} />
+                <BentoBoxes pokemon={pokemon} species={species} loadPokemon={function (nameOrId: string | number): void {
+                      throw new Error('Function not implemented.');
+                    } } />
               </motion.div>
               
               {/* Center column - Pokémon card */}

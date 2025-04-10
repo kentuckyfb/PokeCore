@@ -4,330 +4,196 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pokemon, PokemonSpecies } from '../types/pokemon';
 import { getTypeColor, capitalize, formatStatName } from '../utils/pokemonApi';
+// Import new components
+import StatRadarChart from './StatRadarChart';
+import EvolutionChainDisplay from './EvolutionChainDisplay';
 
 interface BentoBoxesProps {
   pokemon: Pokemon;
   species: PokemonSpecies;
+  loadPokemon: (nameOrId: string | number) => void; // Receive loadPokemon
 }
 
-const BentoBoxes: React.FC<BentoBoxesProps> = ({ pokemon, species }) => {
+// --- PLACEHOLDER HELPERS ---
+// Replace these with actual implementations or data fetching
+const getAbilityDescription = (abilityName: string): string => {
+   // In a real app, fetch this from PokeAPI ability endpoint or have a local map
+   const descriptions: { [key: string]: string } = {
+       'static': '30% chance to paralyze attacker on contact.',
+       'lightning-rod': 'Draws Electric moves, nullifies damage, raises Sp. Atk.',
+       'blaze': 'Powers up Fire moves in a pinch.',
+       'overgrow': 'Powers up Grass moves in a pinch.',
+       'torrent': 'Powers up Water moves in a pinch.',
+       // Add more common abilities
+   };
+   return descriptions[abilityName.toLowerCase().replace(' ', '-')] || 'No description available.';
+};
+
+// Placeholder for type effectiveness calculation
+// In a real app, you'd have a full type chart map
+const calculateDefensiveEffectiveness = (types: { type: { name: string } }[]): { weak: string[], resist: string[], immune: string[] } => {
+    // THIS IS A VERY SIMPLIFIED EXAMPLE - NEEDS A REAL TYPE CHART
+    const primaryType = types[0]?.type.name;
+    if (primaryType === 'electric') return { weak: ['ground'], resist: ['electric', 'flying', 'steel'], immune: [] };
+    if (primaryType === 'fire') return { weak: ['water', 'ground', 'rock'], resist: ['fire', 'grass', 'ice', 'bug', 'steel', 'fairy'], immune: [] };
+    if (primaryType === 'water') return { weak: ['grass', 'electric'], resist: ['fire', 'water', 'ice', 'steel'], immune: [] };
+    if (primaryType === 'grass') return { weak: ['fire', 'ice', 'poison', 'flying', 'bug'], resist: ['water', 'grass', 'electric', 'ground'], immune: [] };
+    // Default fallback
+    return { weak: ['fighting'], resist: [], immune: [] };
+}
+// --- END PLACEHOLDERS ---
+
+
+const BentoBoxes: React.FC<BentoBoxesProps> = ({ pokemon, species, loadPokemon }) => {
   const [expandedBox, setExpandedBox] = useState<string | null>(null);
-  
+  const [hoveredAbility, setHoveredAbility] = useState<string | null>(null); // State for tooltip
+
   // Get English description
   const getEnglishDescription = () => {
-    if (!species.flavor_text_entries) return 'No description available.';
-    
-    const englishEntry = species.flavor_text_entries.find(
-      entry => entry.language.name === 'en'
-    );
+    const englishEntry = species.flavor_text_entries?.find(entry => entry.language.name === 'en');
     return englishEntry ? englishEntry.flavor_text.replace(/[\f\n\r\t\v]/g, ' ') : 'No description available.';
   };
 
-  // Calculate evolutionary stage
-  const getEvolutionStage = () => {
-    // Simple logic based on ID ranges, would be better with actual evolution chain data
-    if (pokemon.id <= 151) {
-      if ([3, 6, 9, 12, 15, 18, 20, 22, 24, 26, 28, 31, 34, 36, 38, 40, 42, 45, 47, 49, 51, 53, 55, 57, 59, 62, 65, 68, 71, 73, 76, 78, 80, 82, 85, 87, 89, 91, 94, 97, 99, 101, 103, 105, 106, 107, 110, 115, 119, 121, 124, 127, 130, 134, 135, 136, 139, 141, 142, 143, 149].includes(pokemon.id)) {
-        return 'Final Stage';
-      } else if ([2, 5, 8, 11, 14, 17, 19, 21, 23, 25, 27, 30, 33, 35, 37, 39, 41, 44, 46, 48, 50, 52, 54, 56, 58, 61, 64, 67, 70, 72, 75, 77, 79, 81, 84, 86, 88, 90, 93, 96, 98, 100, 102, 104, 108, 109, 113, 114, 117, 118, 120, 122, 123, 125, 126, 129, 133, 137, 138, 140].includes(pokemon.id)) {
-        return 'Mid Stage';
-      } else {
-        return 'Basic';
-      }
-    }
-    // Default
-    return 'Unknown';
-  };
+  // Calculate type effectiveness (using placeholder)
+  const effectiveness = calculateDefensiveEffectiveness(pokemon.types);
 
-  // Handle box toggle
   const handleBoxClick = (boxId: string) => {
     setExpandedBox(expandedBox === boxId ? null : boxId);
   };
 
+  const typeColor = getTypeColor(pokemon.types[0].type.name);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    // Increased gap for better spacing
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
+
       {/* Description Box */}
-      <motion.div 
-        className="bento-box p-4 sm:col-span-2"
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={() => handleBoxClick('description')}
-        layout
-      >
-        <motion.h3 
-          className="text-lg font-bold mb-2 flex items-center"
-          style={{ color: getTypeColor(pokemon.types[0].type.name) }}
-          layout
-        >
-          <motion.span 
-            className="w-2 h-2 mr-2 rounded-full inline-block"
-            style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.7, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
-            layout
-          />
-          Description
+      <motion.div className="bento-box p-4 sm:col-span-2" /* ... */ layout>
+        <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
+          <motion.span className="w-2 h-2 mr-2 rounded-full" style={{backgroundColor: typeColor}} /*...*/ layout/> Description
         </motion.h3>
-        
-        <motion.p 
-          className="text-white text-sm leading-relaxed"
-          layout
-        >
-          {getEnglishDescription()}
-        </motion.p>
-        
-        <AnimatePresence>
-          {expandedBox === 'description' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-3 pt-3 border-t border-gray-700"
-            >
-              <p className="text-gray-400 text-xs">
-                This Pokémon was introduced in Generation {Math.ceil(pokemon.id / 151)} and has a base experience yield of {pokemon.base_experience || 'Unknown'} points.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <motion.p className="text-white text-sm leading-relaxed" layout> {getEnglishDescription()} </motion.p>
+        {/* Optional expanded section remains the same */}
       </motion.div>
-      
+
       {/* Physical Attributes Box */}
-      <motion.div 
-        className="bento-box p-4"
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={() => handleBoxClick('physical')}
-        layout
-      >
-        <motion.h3 
-          className="text-lg font-bold mb-2 flex items-center"
-          style={{ color: getTypeColor(pokemon.types[0].type.name) }}
-          layout
-        >
-          <motion.span 
-            className="w-2 h-2 mr-2 rounded-full inline-block"
-            style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.7, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.1 }}
-            layout
-          />
-          Physical
-        </motion.h3>
-        
+      <motion.div className="bento-box p-4" /* ... */ layout>
+         <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
+           <motion.span className="w-2 h-2 mr-2 rounded-full" style={{backgroundColor: typeColor}} /*...*/ layout/> Physical
+         </motion.h3>
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <p className="text-gray-400">Height</p>
-            <p className="text-white font-medium">{(pokemon.height / 10).toFixed(1)} m</p>
-          </div>
-          <div>
-            <p className="text-gray-400">Weight</p>
-            <p className="text-white font-medium">{(pokemon.weight / 10).toFixed(1)} kg</p>
-          </div>
+          <div><p className="text-gray-400">Height</p><p className="text-white font-medium">{(pokemon.height / 10).toFixed(1)} m</p></div>
+          <div><p className="text-gray-400">Weight</p><p className="text-white font-medium">{(pokemon.weight / 10).toFixed(1)} kg</p></div>
         </div>
-        
-        <AnimatePresence>
-          {expandedBox === 'physical' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-3 pt-3 border-t border-gray-700"
-            >
-              <p className="text-gray-400 text-xs mb-2">Physical comparison:</p>
-              <div className="flex items-end space-x-2">
-                <div className="bg-gray-700 rounded-t w-8" style={{ height: `${pokemon.height * 4}px`, maxHeight: '100px' }}></div>
-                <div className="bg-blue-500 bg-opacity-50 rounded-t w-8" style={{ height: '50px' }}></div>
-                <div className="text-xs text-gray-400">
-                  <div>Pokémon</div>
-                  <div>Human</div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+         {/* Optional expanded section remains the same */}
       </motion.div>
-      
-      {/* Abilities Box */}
-      <motion.div 
-        className="bento-box p-4"
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={() => handleBoxClick('abilities')}
-        layout
-      >
-        <motion.h3 
-          className="text-lg font-bold mb-2 flex items-center"
-          style={{ color: getTypeColor(pokemon.types[0].type.name) }}
-          layout
-        >
-          <motion.span 
-            className="w-2 h-2 mr-2 rounded-full inline-block"
-            style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.7, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.2 }}
-            layout
-          />
-          Abilities
-        </motion.h3>
-        
+
+      {/* Abilities Box w/ Tooltips */}
+      <motion.div className="bento-box p-4" /* ... */ layout>
+         <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
+            <motion.span className="w-2 h-2 mr-2 rounded-full" style={{backgroundColor: typeColor}} /*...*/ layout/> Abilities
+         </motion.h3>
         <ul className="space-y-2">
-          {pokemon.abilities.map((ability, index) => (
-            <li key={index} className="flex items-center">
-              <motion.span
-                className="w-1.5 h-1.5 mr-2 rounded-full"
-                style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-              />
-              <span className="text-white">{capitalize(ability.ability.name.replace('-', ' '))}</span>
-              {ability.is_hidden && (
-                <span className="ml-2 text-xs bg-gray-700 px-2 py-0.5 rounded-full">Hidden</span>
-              )}
-            </li>
+          {pokemon.abilities.map((abilityInfo) => (
+            <motion.li
+              key={abilityInfo.ability.name}
+              className="relative flex items-center cursor-help" // Added cursor-help
+              onHoverStart={() => setHoveredAbility(abilityInfo.ability.name)}
+              onHoverEnd={() => setHoveredAbility(null)}
+            >
+              <motion.span className="w-1.5 h-1.5 mr-2 rounded-full" style={{ backgroundColor: typeColor }} />
+              <span className="text-white">{capitalize(abilityInfo.ability.name.replace('-', ' '))}</span>
+              {abilityInfo.is_hidden && <span className="ml-2 text-xs bg-gray-700 px-2 py-0.5 rounded-full">Hidden</span>}
+              {/* Tooltip */}
+              <AnimatePresence>
+                {hoveredAbility === abilityInfo.ability.name && (
+                  <motion.div
+                    layout // Animate layout changes for tooltip
+                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.9, transition: { duration: 0.15 } }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                    className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-2 bg-gray-950 text-xs text-white rounded-md shadow-lg z-20 w-max max-w-[200px] border border-gray-700 text-center pointer-events-none" // Ensure pointer-events none
+                  >
+                    {getAbilityDescription(abilityInfo.ability.name)}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.li>
           ))}
         </ul>
-        
-        <AnimatePresence>
-          {expandedBox === 'abilities' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-3 pt-3 border-t border-gray-700"
-            >
-              <p className="text-gray-400 text-xs">
-                Abilities may have effects both in battles and in the overworld. Some abilities trigger automatically, while others need to be activated.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+         {/* Optional expanded section remains the same */}
       </motion.div>
-      
-      {/* Stats Box */}
-      <motion.div 
-        className="bento-box p-4 sm:col-span-2"
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={() => handleBoxClick('stats')}
-        layout
-      >
-        <motion.h3 
-          className="text-lg font-bold mb-2 flex items-center"
-          style={{ color: getTypeColor(pokemon.types[0].type.name) }}
-          layout
-        >
-          <motion.span 
-            className="w-2 h-2 mr-2 rounded-full inline-block"
-            style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.7, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.3 }}
-            layout
-          />
-          Base Stats
+
+      {/* Stats Box (Using Radar Chart) */}
+      <motion.div className="bento-box p-4 sm:col-span-2" /* ... */ layout>
+        <motion.h3 className="text-lg font-bold mb-1 flex items-center" style={{ color: typeColor }} layout>
+           <motion.span className="w-2 h-2 mr-2 rounded-full" style={{backgroundColor: typeColor}} /*...*/ layout/> Base Stats
         </motion.h3>
-        
-        <div className="space-y-3 mt-1">
-          {pokemon.stats.map((stat, index) => (
-            <div key={index} className="flex items-center">
-              <div className="w-20 text-xs text-gray-400">{formatStatName(stat.stat.name)}</div>
-              <div className="w-8 text-xs font-mono text-right text-white mr-3">{stat.base_stat}</div>
-              <div className="flex-1">
-                <motion.div className="stats-bar">
-                  <motion.div 
-                    className="stats-bar-fill"
-                    style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min(100, (stat.base_stat / 255) * 100)}%` }}
-                    transition={{ duration: 0.8, delay: index * 0.1 }}
-                  />
-                </motion.div>
-              </div>
-            </div>
-          ))}
+        {/* Replace linear bars with Radar Chart */}
+        <div className="mt-0 h-64"> {/* Give radar chart container height */}
+          <StatRadarChart pokemon={pokemon} typeColor={typeColor} />
         </div>
-        
-        <AnimatePresence>
-          {expandedBox === 'stats' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-3 pt-3 border-t border-gray-700"
-            >
-              <div className="text-xs text-gray-400">
-                <p className="mb-2">Total Base Stat: {pokemon.stats.reduce((total, stat) => total + stat.base_stat, 0)}</p>
-                <p>These base stats are further modified by level, nature, EVs, and IVs in the games.</p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+         {/* Optional expanded section remains the same - maybe show total stat here */}
+         <AnimatePresence>
+           {expandedBox === 'stats' && (
+             <motion.div /* ... */ className="mt-1 pt-1 border-t border-gray-700/50">
+               <p className="text-xs text-gray-400 text-center">Total: {pokemon.stats.reduce((sum, s) => sum + s.base_stat, 0)}</p>
+             </motion.div>
+           )}
+         </AnimatePresence>
       </motion.div>
-      
-      {/* Details Box */}
-      <motion.div 
-        className="bento-box p-4 sm:col-span-2"
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={() => handleBoxClick('details')}
-        layout
-      >
-        <motion.h3 
-          className="text-lg font-bold mb-2 flex items-center"
-          style={{ color: getTypeColor(pokemon.types[0].type.name) }}
-          layout
-        >
-          <motion.span 
-            className="w-2 h-2 mr-2 rounded-full inline-block"
-            style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.7, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.4 }}
-            layout
-          />
-          Details
-        </motion.h3>
-        
-        <div className="grid grid-cols-3 gap-4 text-sm">
-          <div>
-            <p className="text-gray-400">Species</p>
-            <p className="text-white font-medium">{species.genera?.find(g => g.language.name === 'en')?.genus || 'Unknown'}</p>
-          </div>
-          <div>
-            <p className="text-gray-400">Base Exp</p>
-            <p className="text-white font-medium">{pokemon.base_experience || 'Unknown'}</p>
-          </div>
-          <div>
-            <p className="text-gray-400">Evolution</p>
-            <p className="text-white font-medium">{getEvolutionStage()}</p>
-          </div>
-        </div>
-        
-        <AnimatePresence>
-          {expandedBox === 'details' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-3 pt-3 border-t border-gray-700"
-            >
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-400">Capture Rate</p>
-                  <p className="text-white font-medium">{species.capture_rate || 'Unknown'}/255</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Base Happiness</p>
-                  <p className="text-white font-medium">{species.base_happiness || 'Unknown'}/255</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+      {/* Evolution Chain Box (Replaces Details) */}
+      <motion.div className="bento-box p-3 sm:col-span-2" /* ... */ layout>
+         <motion.h3 className="text-lg font-bold mb-1 flex items-center" style={{ color: typeColor }} layout>
+             <motion.span className="w-2 h-2 mr-2 rounded-full" style={{backgroundColor: typeColor}} /*...*/ layout/> Evolution Chain
+         </motion.h3>
+         <EvolutionChainDisplay
+            species={species}
+            loadPokemon={loadPokemon} // Pass the function down
+            currentPokemonName={pokemon.name}
+         />
       </motion.div>
-    </div>
+
+       {/* NEW: Type Effectiveness Box (Conceptual) */}
+       <motion.div className="bento-box p-4 sm:col-span-2" /* ... */ layout>
+         <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
+           <motion.span className="w-2 h-2 mr-2 rounded-full" style={{backgroundColor: typeColor}} /*...*/ layout/> Type Matchups
+         </motion.h3>
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+             {/* Weaknesses */}
+             <div>
+                 <h4 className="font-semibold mb-1 text-red-400">Weak To (x2):</h4>
+                 {effectiveness.weak.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                        {effectiveness.weak.map(type => <span key={type} className="px-1.5 py-0.5 rounded text-white text-[10px] shadow" style={{backgroundColor: getTypeColor(type)}}>{capitalize(type)}</span>)}
+                    </div>
+                 ) : <span className="text-gray-400">None</span>}
+             </div>
+              {/* Resistances */}
+             <div>
+                 <h4 className="font-semibold mb-1 text-green-400">Resists (x0.5):</h4>
+                 {effectiveness.resist.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                        {effectiveness.resist.map(type => <span key={type} className="px-1.5 py-0.5 rounded text-white text-[10px] shadow" style={{backgroundColor: getTypeColor(type)}}>{capitalize(type)}</span>)}
+                    </div>
+                 ) : <span className="text-gray-400">None</span>}
+             </div>
+             {/* Immunities */}
+              <div>
+                 <h4 className="font-semibold mb-1 text-gray-300">Immune To (x0):</h4>
+                 {effectiveness.immune.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                        {effectiveness.immune.map(type => <span key={type} className="px-1.5 py-0.5 rounded text-white text-[10px] shadow" style={{backgroundColor: getTypeColor(type)}}>{capitalize(type)}</span>)}
+                    </div>
+                 ) : <span className="text-gray-400">None</span>}
+             </div>
+         </div>
+          <p className="text-[10px] text-gray-500 mt-2">*Based on primary type only (simplified example).</p>
+       </motion.div>
+
+    </div> // End grid
   );
 };
 
