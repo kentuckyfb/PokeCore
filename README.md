@@ -2,6 +2,8 @@
 
 An interactive web application built with Next.js, TypeScript, and Tailwind CSS that displays Pokémon information in a card format with interactive elements.
 
+![image](https://github.com/user-attachments/assets/a21723e9-9e0c-49a9-a139-9007869ee3e9)
+
 ## Features
 
 - Interactive Pokémon card with flip animation
