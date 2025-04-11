@@ -1,76 +1,62 @@
-// components/StatRadarChart.tsx
+// components/StatRadarChart.tsx (Ensure this is the latest version)
 import React from 'react';
 import {
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip
 } from 'recharts';
 import { Pokemon } from '../types/pokemon';
-import { formatStatName } from '../utils/pokemonApi'; // Assuming you have this utility
+import { formatStatName } from '../utils/pokemonApi';
 
 interface StatRadarChartProps {
   pokemon: Pokemon;
-  typeColor: string; // Pass the main type color for styling
+  typeColor: string;
 }
 
-// Define the structure recharts expects
 interface RadarStatData {
-  subject: string; // Stat name (e.g., 'HP')
-  value: number;   // The base stat value
-  fullMark: number; // The maximum possible value for scaling (e.g., 255)
+  subject: string;
+  value: number;
+  fullMark: number;
 }
 
 const StatRadarChart: React.FC<StatRadarChartProps> = ({ pokemon, typeColor }) => {
-  // Transform Pokemon stats into the format recharts needs
   const radarData: RadarStatData[] = pokemon.stats.map(statInfo => ({
-    subject: formatStatName(statInfo.stat.name), // Use your formatted name
+    subject: formatStatName(statInfo.stat.name),
     value: statInfo.base_stat,
-    fullMark: 255, // Max base stat theoretically possible
+    fullMark: 255, // Max possible base stat for scaling
   }));
 
-  // Ensure we have 6 stats for a standard radar chart
-  if (radarData.length !== 6) {
-     // Handle cases where data might be incomplete, maybe show a message or default
-     console.warn("Pokemon data missing expected 6 stats for radar chart.");
-     // You might want to return null or a placeholder here
-     // return <p className="text-xs text-gray-400">Stat data incomplete for radar chart.</p>;
+  if (pokemon.stats.length === 0) {
+      return <p className="text-xs text-gray-400 text-center p-2">No stat data available.</p>;
   }
 
   return (
-    // ResponsiveContainer makes the chart fill its parent
-    <ResponsiveContainer width="100%" height={250}>
+    // Using 100% height to fit parent container
+    <ResponsiveContainer width="100%" height="100%">
       <RadarChart
-        cx="50%" // Center horizontally
-        cy="50%" // Center vertically
-        outerRadius="80%" // How far the chart extends
+        cx="50%"
+        cy="50%"
+        outerRadius="70%" // Adjust this value to fit the chart visually
         data={radarData}
       >
-        {/* Grid lines */}
-        <PolarGrid stroke="#555" />
-
-        {/* Labels around the chart (stat names) */}
+        <PolarGrid stroke="#444" />
         <PolarAngleAxis
           dataKey="subject"
-          stroke="#ccc" // Color of the labels
-          tickLine={false} // Hide lines extending from labels
-          fontSize={12}
+          stroke="#aaa"
+          tickLine={false}
+          fontSize={10} // Adjust font size if labels are too big
         />
-
-        {/* Optional: Radial axis numbers (comment out if too cluttered) */}
-        {/* <PolarRadiusAxis angle={30} domain={[0, 255]} stroke="#555" fontSize={10} /> */}
-
-        {/* The actual radar area */}
+        {/* PolarRadiusAxis removed for less clutter */}
         <Radar
-          name={pokemon.name} // For tooltip
-          dataKey="value"      // The key in radarData holding the stat value
-          stroke={typeColor}   // Outline color
-          fill={typeColor}     // Fill color
-          fillOpacity={0.6}    // Make fill semi-transparent
+          name={pokemon.name}
+          dataKey="value"
+          stroke={typeColor}
+          fill={typeColor}
+          fillOpacity={0.6}
         />
-
-        {/* Tooltip on hover */}
         <Tooltip
-           contentStyle={{ backgroundColor: 'rgba(40, 40, 40, 0.8)', border: `1px solid ${typeColor}`, borderRadius: '8px' }}
-           labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-           itemStyle={{ color: typeColor }}
+           contentStyle={{ backgroundColor: 'rgba(30, 30, 30, 0.9)', border: `1px solid ${typeColor}`, borderRadius: '5px', padding: '5px 8px' }}
+           labelStyle={{ color: '#eee', fontWeight: 'bold', fontSize: '12px', marginBottom: '3px' }}
+           itemStyle={{ color: typeColor, fontSize: '11px' }}
+           wrapperStyle={{ zIndex: 1000 }}
         />
       </RadarChart>
     </ResponsiveContainer>

@@ -5,10 +5,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import PokemonCard from '../components/EnhancedPokemonCard';
-import BentoBoxes from '../components/BentoBoxes';
+import UniformGridLayout from '../components/UniformGridLayout'; // Import the new uniform grid layout
 import { getPokemon, getPokemonSpecies, getRandomPokemon, getTypeColor } from '../utils/pokemonApi';
 import { Pokemon, PokemonSpecies } from '../types/pokemon';
+import PokeballLoading from '../components/LoadingIcon';
 
 export default function Home() {
   const [pokemon, setPokemon] = useState<Pokemon | null>(null);
@@ -17,14 +17,12 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [bgColor, setBgColor] = useState<string>('#121212');
-  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [searchHistory, setSearchHistory] = useState<Array<{id: number, name: string}>>([]);
 
   // Load a Pokémon (default: Pikachu)
   const loadPokemon = async (nameOrId: string | number = 25) => {
     setLoading(true);
     setError(null);
-    setActiveSection(null);
     
     try {
       // Get Pokémon data
@@ -64,7 +62,6 @@ export default function Home() {
   const loadRandomPokemon = async () => {
     setLoading(true);
     setError(null);
-    setActiveSection(null);
     
     try {
       // Get random Pokémon data
@@ -124,58 +121,15 @@ export default function Home() {
     setIsFlipped(!isFlipped);
   };
 
-  // Handle section selection
-  const handleSectionClick = (section: string) => {
-    if (activeSection === section) {
-      setActiveSection(null);
-    } else {
-      setActiveSection(section);
-    }
-  };
-
-  // Animations for sections
-  const sectionVariants = {
-    active: {
-      scale: 1.05,
-      opacity: 1,
-      zIndex: 30,
-      transition: { duration: 0.3 }
-    },
-    inactive: (isActive: boolean) => ({
-      scale: isActive ? 0.95 : 1,
-      opacity: isActive ? 0.7 : 1,
-      zIndex: isActive ? 10 : 20,
-      transition: { duration: 0.3 }
-    })
-  };
-
   return (
-    <div className="min-h-screen flex flex-col overflow-container bg-transition" style={{ backgroundColor: bgColor }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: bgColor }}>
       <Header onSearch={handleSearch} onRandom={loadRandomPokemon} />
       
-      <main className="flex-1 py-4 sm:py-8 px-3 sm:px-4 overflow-x-hidden">
-        <div className="max-w-6xl mx-auto">
+      <main className="flex-1 py-4 px-4 overflow-x-hidden">
+        <div className="max-w-7xl mx-auto">
           {loading ? (
             <div className="flex flex-col justify-center items-center h-64">
-              <motion.div
-                className="relative w-20 h-20"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-              >
-                <div
-                  className="absolute w-20 h-20 rounded-full"
-                  style={{
-                    background: "linear-gradient(#ff1a1a 50%, white 50%)",
-                    border: "5px solid #333"
-                  }}
-                />
-                <motion.div
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border-4 border-gray-800 z-10"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                />
-              </motion.div>
-              <p className="mt-6 text-lg font-medium text-gray-300">Loading Pokémon data...</p>
+              <PokeballLoading size={60} message="Loading Pokémon data..." />
             </div>
           ) : error ? (
             <motion.div 
@@ -184,12 +138,10 @@ export default function Home() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <motion.img 
-                src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" 
-                alt="Pokéball" 
-                className="w-16 h-16 mx-auto mb-4" 
+              <motion.div 
+                className="w-16 h-16 mx-auto mb-4 relative"
                 animate={{ 
-                  y: [0, -15, 0],
+                  y: [0, -10, 0],
                   rotate: [0, 10, -10, 0]
                 }}
                 transition={{ 
@@ -197,7 +149,18 @@ export default function Home() {
                   repeat: Infinity,
                   repeatType: "reverse" 
                 }}
-              />
+              >
+                <div
+                  className="absolute w-16 h-16 rounded-full"
+                  style={{
+                    background: "linear-gradient(#ff1a1a 50%, white 50%)",
+                    border: "3px solid #333"
+                  }}
+                />
+                <div
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-gray-800 z-10"
+                />
+              </motion.div>
               <p className="text-red-500 text-lg font-semibold mb-2">{error}</p>
               <p className="text-gray-400 mb-6">Try searching for a Pokémon by name (like "pikachu") or ID number.</p>
               <motion.button
@@ -229,199 +192,23 @@ export default function Home() {
               )}
             </motion.div>
           ) : pokemon && species ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
-              {/* Left column - Bento boxes */}
-              <motion.div 
-                className="lg:col-span-1 order-2 lg:order-1"
-                variants={sectionVariants}
-                animate={activeSection === 'info' ? 'active' : 'inactive'}
-                custom={!!activeSection && activeSection !== 'info'}
-                onClick={() => handleSectionClick('info')}
-              >
-                <BentoBoxes pokemon={pokemon} species={species} loadPokemon={function (nameOrId: string | number): void {
-                      throw new Error('Function not implemented.');
-                    } } />
-              </motion.div>
-              
-              {/* Center column - Pokémon card */}
-              <motion.div 
-                className="lg:col-span-1 order-1 lg:order-2 flex justify-center"
-                variants={sectionVariants}
-                animate={activeSection === 'card' ? 'active' : 'inactive'}
-                custom={!!activeSection && activeSection !== 'card'}
-                onClick={() => handleSectionClick('card')}
-              >
-                <div className="w-full max-w-xs sm:h-96 mb-8 lg:mb-0">
-                  <PokemonCard 
-                    pokemon={pokemon}
-                    species={species}
-                    isFlipped={isFlipped}
-                    onFlip={handleFlip}
-                    typeColor={getTypeColor(pokemon.types[0].type.name)}
-                  />
-                </div>
-              </motion.div>
-              
-              {/* Right column - More Bento boxes */}
-              <motion.div 
-                className="lg:col-span-1 order-3"
-                variants={sectionVariants}
-                animate={activeSection === 'sprites' ? 'active' : 'inactive'}
-                custom={!!activeSection && activeSection !== 'sprites'}
-                onClick={() => handleSectionClick('sprites')}
-              >
-                <motion.div 
-                  className="bento-box p-4 mb-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <h3 className="text-lg font-bold mb-2" style={{ color: getTypeColor(pokemon.types[0].type.name) }}>
-                    Sprites
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {pokemon.sprites.front_default && (
-                      <motion.div 
-                        className="flex flex-col items-center"
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <img 
-                          src={pokemon.sprites.front_default} 
-                          alt={`${pokemon.name} front`} 
-                          className="w-16 h-16 object-contain"
-                        />
-                        <span className="text-xs mt-1">Front</span>
-                      </motion.div>
-                    )}
-                    {pokemon.sprites.back_default && (
-                      <motion.div 
-                        className="flex flex-col items-center"
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <img 
-                          src={pokemon.sprites.back_default} 
-                          alt={`${pokemon.name} back`} 
-                          className="w-16 h-16 object-contain"
-                        />
-                        <span className="text-xs mt-1">Back</span>
-                      </motion.div>
-                    )}
-                    {pokemon.sprites.front_shiny && (
-                      <motion.div 
-                        className="flex flex-col items-center"
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <img 
-                          src={pokemon.sprites.front_shiny} 
-                          alt={`${pokemon.name} shiny front`} 
-                          className="w-16 h-16 object-contain"
-                        />
-                        <span className="text-xs mt-1">Shiny Front</span>
-                      </motion.div>
-                    )}
-                    {pokemon.sprites.back_shiny && (
-                      <motion.div 
-                        className="flex flex-col items-center"
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <img 
-                          src={pokemon.sprites.back_shiny} 
-                          alt={`${pokemon.name} shiny back`} 
-                          className="w-16 h-16 object-contain"
-                        />
-                        <span className="text-xs mt-1">Shiny Back</span>
-                      </motion.div>
-                    )}
-                  </div>
-                </motion.div>
-                
-                <motion.div 
-                  className="bento-box p-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <h3 className="text-lg font-bold mb-2" style={{ color: getTypeColor(pokemon.types[0].type.name) }}>
-                    Quick Facts
-                  </h3>
-                  <ul className="space-y-2 text-sm">
-                    <motion.li 
-                      className="flex items-start"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <motion.span 
-                        className="w-2 h-2 mt-1.5 mr-2 rounded-full" 
-                        style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-                        animate={{ scale: [1, 1.5, 1] }}
-                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                      />
-                      <span>Pokédex #: {pokemon.id}</span>
-                    </motion.li>
-                    <motion.li 
-                      className="flex items-start"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 }}
-                    >
-                      <motion.span 
-                        className="w-2 h-2 mt-1.5 mr-2 rounded-full" 
-                        style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-                        animate={{ scale: [1, 1.5, 1] }}
-                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 1.2 }}
-                      />
-                      <span>Generation: {Math.ceil(pokemon.id / 151)}</span>
-                    </motion.li>
-                    <motion.li 
-                      className="flex items-start"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      <motion.span 
-                        className="w-2 h-2 mt-1.5 mr-2 rounded-full" 
-                        style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-                        animate={{ scale: [1, 1.5, 1] }}
-                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 1.4 }}
-                      />
-                      <span>Base Happiness: {species.base_happiness || 'Unknown'}</span>
-                    </motion.li>
-                    <motion.li 
-                      className="flex items-start"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.6 }}
-                    >
-                      <motion.span 
-                        className="w-2 h-2 mt-1.5 mr-2 rounded-full" 
-                        style={{ backgroundColor: getTypeColor(pokemon.types[0].type.name) }}
-                        animate={{ scale: [1, 1.5, 1] }}
-                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 1.6 }}
-                      />
-                      <span>Capture Rate: {species.capture_rate || 'Unknown'}/255</span>
-                    </motion.li>
-                  </ul>
-                </motion.div>
-              </motion.div>
-            </div>
+            // Use the new UniformGridLayout component
+            <UniformGridLayout
+              pokemon={pokemon}
+              species={species}
+              loadPokemon={loadPokemon}
+              isFlipped={isFlipped}
+              onFlip={handleFlip}
+            />
           ) : null}
           
           {/* Search History Bar (if not on error screen) */}
-          {!error && searchHistory.length > 0 && (
+          {!error && !loading && searchHistory.length > 0 && (
             <motion.div 
               className="mt-8 overflow-x-auto pb-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 }}
+              transition={{ duration: 0.5 }}
             >
               <div className="flex items-center justify-center space-x-2">
                 <span className="text-xs text-gray-400">Recent:</span>

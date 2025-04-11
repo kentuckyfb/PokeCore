@@ -7,7 +7,6 @@ import { getTypeColor, capitalize, formatStatName } from '../utils/pokemonApi';
 import StatRadarChart from './StatRadarChart';
 import HorizontalEvolutionChain from './HorizontalEvolutionChain';
 import EnhancedPokemonCard from './EnhancedPokemonCard';
-import AnimatedDot from './MicroInteractions'; // Import animated dot
 
 interface UniformGridLayoutProps {
     pokemon: Pokemon;
@@ -16,13 +15,14 @@ interface UniformGridLayoutProps {
     isFlipped: boolean;
     onFlip: () => void;
 }
-// Define Props type for StatsBox if not already done
 interface StatsBoxProps {
     pokemon: Pokemon;
     typeColor: string;
 }
 
-// --- Keep Placeholder Helpers ---
+
+// --- PLACEHOLDER HELPERS ---
+// Helper for ability description
 const getAbilityDescription = (abilityName: string): string => {
     const descriptions: { [key: string]: string } = {
         'static': '30% chance to paralyze attacker on contact.',
@@ -34,6 +34,7 @@ const getAbilityDescription = (abilityName: string): string => {
     return descriptions[abilityName.toLowerCase().replace(' ', '-')] || 'No description available.';
 };
 
+// Helper for type effectiveness
 const calculateDefensiveEffectiveness = (types: { type: { name: string } }[]): { weak: string[], resist: string[], immune: string[] } => {
     const primaryType = types[0]?.type.name;
     if (primaryType === 'electric') return { weak: ['ground'], resist: ['electric', 'flying', 'steel'], immune: [] };
@@ -42,9 +43,9 @@ const calculateDefensiveEffectiveness = (types: { type: { name: string } }[]): {
     if (primaryType === 'grass') return { weak: ['fire', 'ice', 'poison', 'flying', 'bug'], resist: ['water', 'grass', 'electric', 'ground'], immune: [] };
     return { weak: ['fighting'], resist: [], immune: [] };
 }
-// --- End Placeholders ---
+// --- END PLACEHOLDERS ---
 
-// Component for description box (Add whileHover)
+// Component for description box
 const DescriptionBox = ({ pokemon, species, typeColor }) => {
     const getEnglishDescription = () => {
         const englishEntry = species.flavor_text_entries?.find(entry => entry.language.name === 'en');
@@ -52,20 +53,20 @@ const DescriptionBox = ({ pokemon, species, typeColor }) => {
     };
 
     return (
-        <motion.div className="bento-box p-4 h-full" layout whileHover={{ scale: 1.01, boxShadow: `0 10px 40px rgba(0, 0, 0, 0.2)` }}>
+        <motion.div className="bento-box p-4 h-full" layout>
             <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
-                <AnimatedDot color={typeColor} delay={0} /> Description
+                <motion.span className="w-2 h-2 mr-2 rounded-full" style={{ backgroundColor: typeColor }} layout /> Description
             </motion.h3>
             <motion.p className="text-white text-sm leading-relaxed" layout>{getEnglishDescription()}</motion.p>
         </motion.div>
     );
 };
 
-// Component for physical attributes (Add whileHover)
+// Component for physical attributes
 const PhysicalBox = ({ pokemon, typeColor }) => (
-    <motion.div className="bento-box p-4 h-full" layout whileHover={{ scale: 1.01, boxShadow: `0 10px 40px rgba(0, 0, 0, 0.2)` }}>
+    <motion.div className="bento-box p-4 h-full" layout>
         <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
-            <AnimatedDot color={typeColor} delay={0.1} /> Physical
+            <motion.span className="w-2 h-2 mr-2 rounded-full" style={{ backgroundColor: typeColor }} layout /> Physical
         </motion.h3>
         <div className="grid grid-cols-2 gap-2 text-sm">
             <div><p className="text-gray-400">Height</p><p className="text-white font-medium">{(pokemon.height / 10).toFixed(1)} m</p></div>
@@ -74,25 +75,24 @@ const PhysicalBox = ({ pokemon, typeColor }) => (
     </motion.div>
 );
 
-// Component for abilities (Add whileHover)
+// Component for abilities
 const AbilitiesBox = ({ pokemon, typeColor }) => {
     const [hoveredAbility, setHoveredAbility] = useState<string | null>(null);
 
     return (
-        <motion.div className="bento-box p-4 h-full" layout whileHover={{ scale: 1.01, boxShadow: `0 10px 40px rgba(0, 0, 0, 0.2)` }}>
+        <motion.div className="bento-box p-4 h-full" layout>
             <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
-                <AnimatedDot color={typeColor} delay={0.2} /> Abilities
+                <motion.span className="w-2 h-2 mr-2 rounded-full" style={{ backgroundColor: typeColor }} layout /> Abilities
             </motion.h3>
             <ul className="space-y-2">
                 {pokemon.abilities.map((abilityInfo) => (
                     <motion.li
                         key={abilityInfo.ability.name}
-                        className="relative flex items-center cursor-help text-sm"
+                        className="relative flex items-center cursor-help"
                         onHoverStart={() => setHoveredAbility(abilityInfo.ability.name)}
                         onHoverEnd={() => setHoveredAbility(null)}
-                        whileHover={{ x: 3 }} // Subtle animation on hover
                     >
-                        <motion.span className="w-1.5 h-1.5 mr-2 rounded-full shrink-0" style={{ backgroundColor: typeColor }} />
+                        <motion.span className="w-1.5 h-1.5 mr-2 rounded-full" style={{ backgroundColor: typeColor }} />
                         <span className="text-white">{capitalize(abilityInfo.ability.name.replace('-', ' '))}</span>
                         {abilityInfo.is_hidden && <span className="ml-2 text-xs bg-gray-700 px-2 py-0.5 rounded-full">Hidden</span>}
                         <AnimatePresence>
@@ -116,14 +116,14 @@ const AbilitiesBox = ({ pokemon, typeColor }) => {
     );
 };
 
-// Component for type matchups (Add whileHover)
+// Component for type matchups
 const TypeMatchupsBox = ({ pokemon, typeColor }) => {
     const effectiveness = calculateDefensiveEffectiveness(pokemon.types);
 
     return (
-        <motion.div className="bento-box p-4 h-full" layout whileHover={{ scale: 1.01, boxShadow: `0 10px 40px rgba(0, 0, 0, 0.2)` }}>
+        <motion.div className="bento-box p-4 h-full" layout>
             <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
-                <AnimatedDot color={typeColor} delay={0.3} /> Type Matchups
+                <motion.span className="w-2 h-2 mr-2 rounded-full" style={{ backgroundColor: typeColor }} layout /> Type Matchups
             </motion.h3>
             <div className="grid grid-cols-1 gap-3 text-xs">
                 <div>
@@ -131,15 +131,8 @@ const TypeMatchupsBox = ({ pokemon, typeColor }) => {
                     {effectiveness.weak.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                             {effectiveness.weak.map(type => (
-                                <motion.span 
-                                    key={type} 
-                                    className="px-1.5 py-0.5 rounded text-white text-[10px] shadow"
-                                    style={{ backgroundColor: getTypeColor(type) }}
-                                    whileHover={{ scale: 1.1 }}
-                                    transition={{ duration: 0.1 }}
-                                >
-                                    {capitalize(type)}
-                                </motion.span>
+                                <span key={type} className="px-1.5 py-0.5 rounded text-white text-[10px] shadow"
+                                    style={{ backgroundColor: getTypeColor(type) }}>{capitalize(type)}</span>
                             ))}
                         </div>
                     ) : <span className="text-gray-400">None</span>}
@@ -149,15 +142,8 @@ const TypeMatchupsBox = ({ pokemon, typeColor }) => {
                     {effectiveness.resist.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                             {effectiveness.resist.map(type => (
-                                <motion.span 
-                                    key={type} 
-                                    className="px-1.5 py-0.5 rounded text-white text-[10px] shadow"
-                                    style={{ backgroundColor: getTypeColor(type) }}
-                                    whileHover={{ scale: 1.1 }}
-                                    transition={{ duration: 0.1 }}
-                                >
-                                    {capitalize(type)}
-                                </motion.span>
+                                <span key={type} className="px-1.5 py-0.5 rounded text-white text-[10px] shadow"
+                                    style={{ backgroundColor: getTypeColor(type) }}>{capitalize(type)}</span>
                             ))}
                         </div>
                     ) : <span className="text-gray-400">None</span>}
@@ -167,15 +153,8 @@ const TypeMatchupsBox = ({ pokemon, typeColor }) => {
                     {effectiveness.immune.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                             {effectiveness.immune.map(type => (
-                                <motion.span 
-                                    key={type} 
-                                    className="px-1.5 py-0.5 rounded text-white text-[10px] shadow"
-                                    style={{ backgroundColor: getTypeColor(type) }}
-                                    whileHover={{ scale: 1.1 }}
-                                    transition={{ duration: 0.1 }}
-                                >
-                                    {capitalize(type)}
-                                </motion.span>
+                                <span key={type} className="px-1.5 py-0.5 rounded text-white text-[10px] shadow"
+                                    style={{ backgroundColor: getTypeColor(type) }}>{capitalize(type)}</span>
                             ))}
                         </div>
                     ) : <span className="text-gray-400">None</span>}
@@ -185,15 +164,16 @@ const TypeMatchupsBox = ({ pokemon, typeColor }) => {
     );
 };
 
-// Updated PokemonDetailsBox Component (Add whileHover)
+// Component for evolution chain (now moved to Pokémon Details box)
+// Updated PokemonDetailsBox Component
 const PokemonDetailsBox = ({ pokemon, species, typeColor }) => (
-    <motion.div className="bento-box p-4 h-full flex flex-col" layout whileHover={{ scale: 1.01, boxShadow: `0 10px 40px rgba(0, 0, 0, 0.2)` }}>
+    <motion.div className="bento-box p-4 h-full flex flex-col" layout>
         <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
-            <AnimatedDot color={typeColor} delay={0.4} /> Pokémon Details
+            <motion.span className="w-2 h-2 mr-2 rounded-full" style={{ backgroundColor: typeColor }} layout /> Pokémon Details
         </motion.h3>
 
         {/* Make this section scrollable if needed */}
-        <div className="overflow-y-auto flex-grow scroll-thin"> {/* Added scroll-thin class */}
+        <div className="overflow-y-auto flex-grow">
             <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                     <p className="text-gray-400">Species</p>
@@ -213,6 +193,8 @@ const PokemonDetailsBox = ({ pokemon, species, typeColor }) => (
                         {species.egg_groups?.map(group => capitalize(group.name)).join(', ') || 'Unknown'}
                     </p>
                 </div>
+
+                {/* Move these inside the scrollable area */}
                 <div>
                     <p className="text-gray-400">Habitat</p>
                     <p className="text-white font-medium capitalize">{species.habitat?.name?.replace('-', ' ') || 'Unknown'}</p>
@@ -225,65 +207,72 @@ const PokemonDetailsBox = ({ pokemon, species, typeColor }) => (
                     <p className="text-gray-400">Color</p>
                     <p className="text-white font-medium capitalize">{species.color?.name || 'Unknown'}</p>
                 </div>
-                {/* Generation is now handled in QuickFactsBox */}
+                <div>
+                    <p className="text-gray-400">Generation</p>
+                    <p className="text-white font-medium">Generation {Math.ceil(pokemon.id / 151)}</p>
+                </div>
             </div>
         </div>
     </motion.div>
 );
 
-// StatsBox with properly sized radar chart (Add whileHover)
 const StatsBox: React.FC<StatsBoxProps> = ({ pokemon, typeColor }) => {
     const totalStats = pokemon.stats.reduce((sum, stat) => sum + stat.base_stat, 0);
-    
-    return (
-      <motion.div className="bento-box p-2 h-full flex flex-col" layout whileHover={{ scale: 1.01, boxShadow: `0 10px 40px rgba(0, 0, 0, 0.2)` }}>
-        <motion.h3 className="text-lg font-bold mb-0.5 flex items-center flex-shrink-0" style={{ color: typeColor }} layout>
-          <AnimatedDot color={typeColor} delay={0.5} /> Base Stats
-        </motion.h3>
-        
-        <div className="flex-grow flex items-center justify-center relative min-h-0">
-          {/* Height MUST be controlled by StatRadarChart parent or container */}
-          <div className="w-full h-full"> {/* Changed to h-full */}
-            <StatRadarChart pokemon={pokemon} typeColor={typeColor} />
-          </div>
-        </div>
-        
-        {/* Total stats at bottom */}
-        <div className="text-xs text-right text-gray-400 mt-0.5 pr-2 flex-shrink-0"> {/* Added flex-shrink-0 */}
-          Total: {totalStats}
-        </div>
-      </motion.div>
-    );
-  };
 
-// Component for sprites (Add whileHover and pixelated)
+    return (
+        <motion.div className="bento-box p-2 h-full flex flex-col" layout>
+            {/* Title */}
+            <motion.h3 className="text-lg font-bold mb-0 flex items-center flex-shrink-0" style={{ color: typeColor }} layout> {/* Added flex-shrink-0 */}
+                <motion.span className="w-2 h-2 mr-2 rounded-full" style={{ backgroundColor: typeColor }} layout /> Base Stats
+            </motion.h3>
+
+            {/* Chart Container - Takes remaining space, content aligned top */}
+            {/* --- KEY CHANGE: Removed items-center --- */}
+            <div className="flex-grow flex justify-center relative min-h-0 overflow-hidden"> {/* Added overflow-hidden for safety, removed items-center */}
+                {/* Inner div now takes full height of the flex-grow container */}
+                {/* --- KEY CHANGE: Removed explicit height style, added h-full class --- */}
+                <div className="w-full h-full">
+                    <StatRadarChart pokemon={pokemon} typeColor={typeColor} />
+                </div>
+            </div>
+
+            {/* Total stats at bottom */}
+            <div className="text-xs text-right text-gray-400 mt-0 pr-1 pb-0.5 flex-shrink-0"> {/* Added flex-shrink-0 */}
+                Total: {totalStats}
+            </div>
+        </motion.div>
+    );
+};
+
+
+// Component for sprites
 const SpritesBox = ({ pokemon, typeColor }) => (
-    <motion.div className="bento-box p-4 h-full" layout whileHover={{ scale: 1.01, boxShadow: `0 10px 40px rgba(0, 0, 0, 0.2)` }}>
+    <motion.div className="bento-box p-4 h-full" layout>
         <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
-            <AnimatedDot color={typeColor} delay={0.6} /> Sprites
+            <motion.span className="w-2 h-2 mr-2 rounded-full" style={{ backgroundColor: typeColor }} layout /> Sprites
         </motion.h3>
         <div className="grid grid-cols-2 gap-2">
             {pokemon.sprites.front_default && (
                 <motion.div className="flex flex-col items-center" whileHover={{ scale: 1.1 }}>
-                    <img src={pokemon.sprites.front_default} alt={`${pokemon.name} front`} className="w-16 h-16 object-contain pixelated" /> {/* Added pixelated */}
+                    <img src={pokemon.sprites.front_default} alt={`${pokemon.name} front`} className="w-16 h-16 object-contain" />
                     <span className="text-xs mt-1 text-gray-300">Front</span>
                 </motion.div>
             )}
             {pokemon.sprites.back_default && (
                 <motion.div className="flex flex-col items-center" whileHover={{ scale: 1.1 }}>
-                    <img src={pokemon.sprites.back_default} alt={`${pokemon.name} back`} className="w-16 h-16 object-contain pixelated" /> {/* Added pixelated */}
+                    <img src={pokemon.sprites.back_default} alt={`${pokemon.name} back`} className="w-16 h-16 object-contain" />
                     <span className="text-xs mt-1 text-gray-300">Back</span>
                 </motion.div>
             )}
             {pokemon.sprites.front_shiny && (
                 <motion.div className="flex flex-col items-center" whileHover={{ scale: 1.1 }}>
-                    <img src={pokemon.sprites.front_shiny} alt={`${pokemon.name} shiny front`} className="w-16 h-16 object-contain pixelated" /> {/* Added pixelated */}
+                    <img src={pokemon.sprites.front_shiny} alt={`${pokemon.name} shiny front`} className="w-16 h-16 object-contain" />
                     <span className="text-xs mt-1 text-gray-300">Shiny</span>
                 </motion.div>
             )}
             {pokemon.sprites.back_shiny && (
                 <motion.div className="flex flex-col items-center" whileHover={{ scale: 1.1 }}>
-                    <img src={pokemon.sprites.back_shiny} alt={`${pokemon.name} shiny back`} className="w-16 h-16 object-contain pixelated" /> {/* Added pixelated */}
+                    <img src={pokemon.sprites.back_shiny} alt={`${pokemon.name} shiny back`} className="w-16 h-16 object-contain" />
                     <span className="text-xs mt-1 text-gray-300">Shiny Back</span>
                 </motion.div>
             )}
@@ -291,37 +280,32 @@ const SpritesBox = ({ pokemon, typeColor }) => (
     </motion.div>
 );
 
-// Component for quick facts (Add whileHover)
-const QuickFactsBox = ({ pokemon, species, typeColor }) => {
-    // Correct generation calculation using species data if available
-    const generation = species.generation?.name ? species.generation.name.split('-')[1]?.toUpperCase() : Math.ceil(pokemon.id / 151);
-
-    return (
-        <motion.div className="bento-box p-4 h-full" layout whileHover={{ scale: 1.01, boxShadow: `0 10px 40px rgba(0, 0, 0, 0.2)` }}>
-            <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
-                <AnimatedDot color={typeColor} delay={0.7} /> Quick Facts
-            </motion.h3>
-            <ul className="space-y-2 text-sm">
-                <motion.li className="flex items-start">
-                    <motion.span className="w-2 h-2 mt-1.5 mr-2 rounded-full shrink-0" style={{ backgroundColor: typeColor }} />
-                    <span>Pokédex #: {pokemon.id}</span>
-                </motion.li>
-                <motion.li className="flex items-start">
-                    <motion.span className="w-2 h-2 mt-1.5 mr-2 rounded-full shrink-0" style={{ backgroundColor: typeColor }} />
-                    <span>Generation: {generation}</span>
-                </motion.li>
-                <motion.li className="flex items-start">
-                    <motion.span className="w-2 h-2 mt-1.5 mr-2 rounded-full shrink-0" style={{ backgroundColor: typeColor }} />
-                    <span>Base Happiness: {species.base_happiness ?? 'N/A'}</span>
-                </motion.li>
-                <motion.li className="flex items-start">
-                    <motion.span className="w-2 h-2 mt-1.5 mr-2 rounded-full shrink-0" style={{ backgroundColor: typeColor }} />
-                    <span>Capture Rate: {species.capture_rate ?? 'N/A'}/255</span>
-                </motion.li>
-            </ul>
-        </motion.div>
-    );
-};
+// Component for quick facts
+const QuickFactsBox = ({ pokemon, species, typeColor }) => (
+    <motion.div className="bento-box p-4 h-full" layout>
+        <motion.h3 className="text-lg font-bold mb-2 flex items-center" style={{ color: typeColor }} layout>
+            <motion.span className="w-2 h-2 mr-2 rounded-full" style={{ backgroundColor: typeColor }} layout /> Quick Facts
+        </motion.h3>
+        <ul className="space-y-2 text-sm">
+            <motion.li className="flex items-start">
+                <motion.span className="w-2 h-2 mt-1.5 mr-2 rounded-full shrink-0" style={{ backgroundColor: typeColor }} />
+                <span>Pokédex #: {pokemon.id}</span>
+            </motion.li>
+            <motion.li className="flex items-start">
+                <motion.span className="w-2 h-2 mt-1.5 mr-2 rounded-full shrink-0" style={{ backgroundColor: typeColor }} />
+                <span>Generation: {Math.ceil(pokemon.id / 151)}</span>
+            </motion.li>
+            <motion.li className="flex items-start">
+                <motion.span className="w-2 h-2 mt-1.5 mr-2 rounded-full shrink-0" style={{ backgroundColor: typeColor }} />
+                <span>Base Happiness: {species.base_happiness ?? 'N/A'}</span>
+            </motion.li>
+            <motion.li className="flex items-start">
+                <motion.span className="w-2 h-2 mt-1.5 mr-2 rounded-full shrink-0" style={{ backgroundColor: typeColor }} />
+                <span>Capture Rate: {species.capture_rate ?? 'N/A'}/255</span>
+            </motion.li>
+        </ul>
+    </motion.div>
+);
 
 // Main component
 const UniformGridLayout: React.FC<UniformGridLayoutProps> = ({
@@ -331,19 +315,10 @@ const UniformGridLayout: React.FC<UniformGridLayoutProps> = ({
     isFlipped,
     onFlip
 }) => {
-     // Check if pokemon and types exist before accessing
-    if (!pokemon || !pokemon.types || pokemon.types.length === 0) {
-       return <div>Loading Pokémon data...</div>; // Or a proper loading state
-    }
-     // Check species as well
-    if (!species) {
-        return <div>Loading Pokémon species data...</div>; // Or a proper loading state
-    }
-
     const typeColor = getTypeColor(pokemon.types[0].type.name);
 
     return (
-        <div className="uniform-grid-container p-4"> {/* Added padding */}
+        <div className="uniform-grid-container">
             {/* Central grid with 3-column layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Left column */}
@@ -371,13 +346,15 @@ const UniformGridLayout: React.FC<UniformGridLayoutProps> = ({
                         </div>
                     </div>
 
-                    {/* Evolution Chain Box */}
-                    <motion.div className="bento-box p-3 h-full flex flex-col" layout whileHover={{ scale: 1.01, boxShadow: `0 10px 40px rgba(0, 0, 0, 0.2)` }}>
+                    {/* Additional Middle Bottom Content */}
+
+
+                    <motion.div className="bento-box p-3 h-full flex flex-col" layout>
                         <motion.h3 className="text-lg font-bold mb-1 flex items-center" style={{ color: typeColor }} layout>
-                            <AnimatedDot color={typeColor} delay={0.8} /> Evolution Chain
+                            <motion.span className="w-2 h-2 mr-2 rounded-full" style={{ backgroundColor: typeColor }} layout /> Evolution Chain
                         </motion.h3>
-                        <div className="overflow-x-auto pb-2 evolution-scroll-container flex-grow flex items-center min-h-[100px]">
-                            <div className="min-w-max w-full px-2">
+                        <div className="overflow-x-auto pb-2 evolution-scroll-container flex-grow flex items-center">
+                            <div className="min-w-max w-full">
                                 <HorizontalEvolutionChain
                                     species={species}
                                     loadPokemon={loadPokemon}
@@ -386,6 +363,7 @@ const UniformGridLayout: React.FC<UniformGridLayoutProps> = ({
                             </div>
                         </div>
                     </motion.div>
+
                 </div>
 
                 {/* Right column */}

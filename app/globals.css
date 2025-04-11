@@ -442,3 +442,91 @@ body {
   cursor: grabbing;
 }
 
+/* Add these styles to your globals.css file */
+
+/* Uniform Grid Layout Styles */
+.uniform-grid-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.uniform-grid-container .bento-box {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(23, 23, 27, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.uniform-grid-container .bento-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Evolution chain horizontal scroll */
+.evolution-scroll-container {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+.evolution-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.evolution-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.evolution-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius:.3px;
+}
+
+/* Make the evolution chain display horizontally */
+.evolution-scroll-container > div > div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.5rem;
+  min-width: max-content;
+}
+
+/* Ensure consistent height for grid items */
+@media (min-width: 768px) {
+  .uniform-grid-container {
+    min-height: 800px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .uniform-grid-container > .grid {
+    flex: 1;
+  }
+  
+  /* Custom heights for specific boxes */
+  .uniform-grid-container .grid-cols-2 .bento-box {
+    min-height: 120px;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .uniform-grid-container .bento-box {
+    min-height: 150px;
+  }
+  
+  .uniform-grid-container .grid {
+    gap: 1rem;
+  }
+}
